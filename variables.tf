@@ -52,3 +52,7 @@ variable "network_service_cidr" {
   description = "CNI service cidr"
   default     = "10.2.0.0/24"
 }
+
+variable "jumpbox_password" {
+  description = "jumpbox password"
+}
