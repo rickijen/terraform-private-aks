@@ -211,6 +211,7 @@ resource "azurerm_kubernetes_cluster" "privateaks" {
   depends_on = [module.routetable]
 }
 
+/*
 resource "azurerm_role_assignment" "netcontributor-subnet" {
   role_definition_name = "Network Contributor"
   #scope                = module.kube_network.subnet_ids["aks-subnet"]
@@ -223,6 +224,7 @@ resource "azurerm_role_assignment" "netcontributor-udr" {
   scope                = module.routetable.udr_id
   principal_id         = azurerm_user_assigned_identity.uai.principal_id
 }
+*/
 
 module "jumpbox" {
   source                  = "./modules/jumpbox"
