@@ -32,3 +32,8 @@ variable vm_user {
   type        = string
   default     = "azureuser"
 }
+
+variable vm_password {
+  description = "Jumpbox VM user password"
+  type        = string
+}

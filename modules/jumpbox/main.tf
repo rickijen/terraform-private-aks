@@ -60,7 +60,8 @@ resource "azurerm_linux_virtual_machine" "jumpbox" {
   size                            = "Standard_DS1_v2"
   computer_name                   = "jumpboxvm"
   admin_username                  = var.vm_user
-  admin_password                  = random_password.adminpassword.result
+#  admin_password                  = random_password.adminpassword.result
+  admin_password                  = var.vm_password
   disable_password_authentication = false
 
   os_disk {
@@ -81,7 +82,8 @@ resource "azurerm_linux_virtual_machine" "jumpbox" {
       host     = self.public_ip_address
       type     = "ssh"
       user     = var.vm_user
-      password = random_password.adminpassword.result
+#      password = random_password.adminpassword.result
+      password = var.vm_password
     }
 
     inline = [
