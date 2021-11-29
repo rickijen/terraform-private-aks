@@ -214,8 +214,7 @@ resource "azurerm_kubernetes_cluster" "privateaks" {
 
 resource "azurerm_role_assignment" "netcontributor-subnet" {
   role_definition_name = "Network Contributor"
-  #scope                = module.kube_network.subnet_ids["aks-subnet"]
-  scope                = module.kube_network.id
+  scope                = module.kube_network.subnet_ids["aks-subnet"]
   principal_id         = azurerm_user_assigned_identity.uai.principal_id
 }
 
