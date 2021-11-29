@@ -3,7 +3,6 @@ terraform {
 }
 
 provider "azurerm" {
-  version = "~>2.5" //outbound_type https://github.com/terraform-providers/terraform-provider-azurerm/blob/v2.5.0/CHANGELOG.md
   features {}
 }
 
@@ -17,20 +16,27 @@ resource "azurerm_resource_group" "kube" {
   location = var.location
 }
 
+resource "azurerm_user_assigned_identity" "uai" {
+  resource_group_name = azurerm_resource_group.kube.name
+  location            = azurerm_resource_group.kube.location
+
+  name = "uai-aks"
+}
+
 module "hub_network" {
   source              = "./modules/vnet"
   resource_group_name = azurerm_resource_group.vnet.name
   location            = var.location
   vnet_name           = var.hub_vnet_name
-  address_space       = ["10.0.0.0/22"]
+  address_space       = ["10.10.0.0/22"]
   subnets = [
     {
       name : "AzureFirewallSubnet"
-      address_prefixes : ["10.0.0.0/24"]
+      address_prefixes : ["10.10.0.0/24"]
     },
     {
       name : "jumpbox-subnet"
-      address_prefixes : ["10.0.1.0/24"]
+      address_prefixes : ["10.10.1.0/24"]
     }
   ]
 }
@@ -40,11 +46,11 @@ module "kube_network" {
   resource_group_name = azurerm_resource_group.kube.name
   location            = var.location
   vnet_name           = var.kube_vnet_name
-  address_space       = ["10.0.4.0/22"]
+  address_space       = ["10.10.4.0/22"]
   subnets = [
     {
       name : "aks-subnet"
-      address_prefixes : ["10.0.5.0/24"]
+      address_prefixes : ["10.10.5.0/24"]
     }
   ]
 }
@@ -88,7 +94,7 @@ data "azurerm_kubernetes_service_versions" "current" {
 resource "azurerm_kubernetes_cluster" "privateaks" {
   name                    = "private-aks"
   location                = var.location
-  kubernetes_version      = data.azurerm_kubernetes_service_versions.current.latest_version
+#  kubernetes_version      = data.azurerm_kubernetes_service_versions.current.latest_version
   resource_group_name     = azurerm_resource_group.kube.name
   dns_prefix              = "private-aks"
   private_cluster_enabled = true
@@ -101,13 +107,14 @@ resource "azurerm_kubernetes_cluster" "privateaks" {
   }
 
   identity {
-    type = "SystemAssigned"
+    type = "UserAssigned"
+    user_assigned_identity_id = azurerm_user_assigned_identity.uai.id
   }
 
   network_profile {
     docker_bridge_cidr = var.network_docker_bridge_cidr
     dns_service_ip     = var.network_dns_service_ip
-    network_plugin     = "azure"
+    network_plugin     = "kubenet"
     outbound_type      = "userDefinedRouting"
     service_cidr       = var.network_service_cidr
   }
@@ -115,10 +122,16 @@ resource "azurerm_kubernetes_cluster" "privateaks" {
   depends_on = [module.routetable]
 }
 
-resource "azurerm_role_assignment" "netcontributor" {
+resource "azurerm_role_assignment" "netcontributor-subnet" {
   role_definition_name = "Network Contributor"
   scope                = module.kube_network.subnet_ids["aks-subnet"]
-  principal_id         = azurerm_kubernetes_cluster.privateaks.identity[0].principal_id
+  principal_id         = azurerm_user_assigned_identity.uai.principal_id
+}
+
+resource "azurerm_role_assignment" "netcontributor-udr" {
+  role_definition_name = "Network Contributor"
+  scope                = module.routetable.udr_id
+  principal_id         = azurerm_user_assigned_identity.uai.principal_id
 }
 
 module "jumpbox" {
