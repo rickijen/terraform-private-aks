@@ -93,30 +93,6 @@ module "routetable" {
 #  version_prefix = var.kube_version_prefix
 #}
 
-resource "azurerm_kubernetes_cluster" "privateaks" {
-  name                    = "${random_pet.prefix.id}-aks"
-  location                = var.location
-#  kubernetes_version      = data.azurerm_kubernetes_service_versions.current.latest_version
-  resource_group_name     = azurerm_resource_group.kube.name
-  dns_prefix              = "${random_pet.prefix.id}-aks"
-  private_cluster_enabled = true
-
-  # Planned Maintenance window
-  maintenance_window {
-    allowed {
-      day = "Saturday"
-      hours = [21, 23]
-    }
-    allowed {
-      day = "Sunday"
-      hours = [5, 6]
-    }
-    not_allowed {
-      start = "2022-05-26T03:00:00Z"
-      end = "2022-05-30T12:00:00Z"
-    }
-  }
-
 resource "random_id" "log_analytics_workspace_name_suffix" {
     byte_length = 8
 }
@@ -142,6 +118,29 @@ resource "azurerm_log_analytics_solution" "default" {
     }
 }
 
+resource "azurerm_kubernetes_cluster" "privateaks" {
+  name                    = "${random_pet.prefix.id}-aks"
+  location                = var.location
+#  kubernetes_version      = data.azurerm_kubernetes_service_versions.current.latest_version
+  resource_group_name     = azurerm_resource_group.kube.name
+  dns_prefix              = "${random_pet.prefix.id}-aks"
+  private_cluster_enabled = true
+
+  # Planned Maintenance window
+  maintenance_window {
+    allowed {
+      day = "Saturday"
+      hours = [21, 23]
+    }
+    allowed {
+      day = "Sunday"
+      hours = [5, 6]
+    }
+    not_allowed {
+      start = "2022-05-26T03:00:00Z"
+      end = "2022-05-30T12:00:00Z"
+    }
+  }
 
   default_node_pool {
     name                = "default"

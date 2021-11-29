@@ -62,3 +62,8 @@ variable "log_analytics_workspace_sku" {
   type        = string
   default     = "PerGB2018"
 }
+
+variable "admin_group_obj_id" {
+  type        = string
+  description = "AKS Admin group object ID"
+}
