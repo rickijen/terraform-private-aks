@@ -56,3 +56,9 @@ variable "network_service_cidr" {
 variable "jumpbox_password" {
   description = "jumpbox password"
 }
+
+# refer https://azure.microsoft.com/pricing/details/monitor/ for log analytics pricing 
+variable "log_analytics_workspace_sku" {
+  type        = string
+  default     = "PerGB2018"
+}
