@@ -205,7 +205,7 @@ resource "azurerm_kubernetes_cluster" "privateaks" {
     outbound_type      = "userDefinedRouting"
 #    service_cidr       = var.network_service_cidr
     load_balancer_sku  = "standard"
-    network_policy     = "azure"
+#    network_policy     = "calico" # network policy "azure" not supported
   }
 
   depends_on = [module.routetable]
@@ -213,7 +213,8 @@ resource "azurerm_kubernetes_cluster" "privateaks" {
 
 resource "azurerm_role_assignment" "netcontributor-subnet" {
   role_definition_name = "Network Contributor"
-  scope                = module.kube_network.subnet_ids["aks-subnet"]
+  #scope                = module.kube_network.subnet_ids["aks-subnet"]
+  scope                = module.kube_network.id
   principal_id         = azurerm_user_assigned_identity.uai.principal_id
 }
 
