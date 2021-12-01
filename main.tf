@@ -1,13 +1,32 @@
-#terraform {
-#  required_version = ">= 0.12"
-#}
-
 resource "random_pet" "prefix" {}
 
 provider "azurerm" {
   features {}
 }
 
+# Use remote state from the "create-resource-groups" workspace
+data "terraform_remote_state" "rg" {
+  backend = "remote"
+
+  config = {
+    organization = "greensugarcake"
+    workspaces = {
+      name = "create-resource-groups"
+    }
+  }
+}
+
+data "azurerm_resource_group" "vnet" {
+  name      = data.terraform_remote_state.rg.outputs.resource_group_vnet_name
+  location  = data.terraform_remote_state.rg.outputs.location
+}
+
+data "azurerm_resource_group" "kube" {
+  name      = data.terraform_remote_state.rg.outputs.resource_group_kube_name
+  location  = data.terraform_remote_state.rg.outputs.location
+}
+
+/*
 resource "azurerm_resource_group" "vnet" {
   name     = "${random_pet.prefix.id}-vnet-rg"
   location = var.location
@@ -17,6 +36,7 @@ resource "azurerm_resource_group" "kube" {
   name     = "${random_pet.prefix.id}-kube-rg"
   location = var.location
 }
+*/
 
 resource "azurerm_user_assigned_identity" "uai" {
   resource_group_name = azurerm_resource_group.kube.name
@@ -211,7 +231,7 @@ resource "azurerm_kubernetes_cluster" "privateaks" {
   depends_on = [module.routetable]
 }
 
-
+// RBAC role assignment for the AKS UAI
 resource "azurerm_role_assignment" "netcontributor-subnet" {
   role_definition_name = "Network Contributor"
   scope                = module.kube_network.subnet_ids["aks-subnet"]
