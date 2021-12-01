@@ -18,12 +18,12 @@ data "terraform_remote_state" "rg" {
 
 data "azurerm_resource_group" "vnet" {
   name      = data.terraform_remote_state.rg.outputs.resource_group_vnet_name
-  location  = data.terraform_remote_state.rg.outputs.location
+  #location  = data.terraform_remote_state.rg.outputs.location
 }
 
 data "azurerm_resource_group" "kube" {
   name      = data.terraform_remote_state.rg.outputs.resource_group_kube_name
-  location  = data.terraform_remote_state.rg.outputs.location
+  #location  = data.terraform_remote_state.rg.outputs.location
 }
 
 /*
