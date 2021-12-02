@@ -4,7 +4,12 @@ provider "azurerm" {
   features {}
 }
 
+#
 # Use remote state from the "create-resource-groups" workspace
+# The reason is we need to create the resource groups first, assign
+# Terraform arm client as the owner in order to assign RBAC roles to
+# AKS cluster
+#
 data "terraform_remote_state" "rg" {
   backend = "remote"
 
@@ -108,10 +113,12 @@ module "routetable" {
   subnet_id          = module.kube_network.subnet_ids["aks-subnet"]
 }
 
-#data "azurerm_kubernetes_service_versions" "current" {
-#  location       = var.location
-#  version_prefix = var.kube_version_prefix
-#}
+/*
+data "azurerm_kubernetes_service_versions" "current" {
+  location       = var.location
+  version_prefix = var.kube_version_prefix
+}
+*/
 
 resource "random_id" "log_analytics_workspace_name_suffix" {
     byte_length = 8
@@ -136,6 +143,12 @@ resource "azurerm_log_analytics_solution" "default" {
         publisher = "Microsoft"
         product   = "OMSGallery/ContainerInsights"
     }
+}
+
+resource "azurerm_resource_group_policy_assignment" "auditaks" {
+    name                  = "audit-aks"
+    resource_group_id     = azurerm_resource_group.default.id
+    policy_definition_id  = var.azure_policy_k8s_initiative
 }
 
 resource "azurerm_kubernetes_cluster" "privateaks" {
@@ -205,13 +218,13 @@ resource "azurerm_kubernetes_cluster" "privateaks" {
         enabled                    = true
         log_analytics_workspace_id = azurerm_log_analytics_workspace.default.id
       }
-#      azure_policy { enabled = true }
+      azure_policy { enabled = true }
 
       # Greenfield AGIC - this will create a new App Gateway in MC_ resource group
-#      ingress_application_gateway {
-#        enabled   = true
-#        subnet_id = azurerm_subnet.appgw.id
-#      }
+      # ingress_application_gateway {
+      #   enabled   = true
+      #   subnet_id = azurerm_subnet.appgw.id
+      # }
 
       #kube_dashboard {
       #  enabled = true
@@ -219,19 +232,19 @@ resource "azurerm_kubernetes_cluster" "privateaks" {
   }
 
   network_profile {
-#    docker_bridge_cidr = var.network_docker_bridge_cidr
-#    dns_service_ip     = var.network_dns_service_ip
+    # docker_bridge_cidr = var.network_docker_bridge_cidr
+    # dns_service_ip     = var.network_dns_service_ip
     network_plugin     = "kubenet"
     outbound_type      = "userDefinedRouting"
-#    service_cidr       = var.network_service_cidr
+    # service_cidr       = var.network_service_cidr
     load_balancer_sku  = "standard"
-#    network_policy     = "calico" # network policy "azure" not supported
+    # network_policy     = "calico" # network policy "azure" not supported
   }
 
   depends_on = [module.routetable]
 }
 
-// RBAC role assignment for the AKS UAI
+# RBAC role assignment for the AKS UAI
 resource "azurerm_role_assignment" "netcontributor-subnet" {
   role_definition_name = "Network Contributor"
   scope                = module.kube_network.subnet_ids["aks-subnet"]
@@ -242,17 +255,6 @@ resource "azurerm_role_assignment" "netcontributor-udr" {
   role_definition_name = "Network Contributor"
   scope                = module.routetable.udr_id
   principal_id         = azurerm_user_assigned_identity.uai.principal_id
-}
-
-module "jumpbox" {
-  source                  = "./modules/jumpbox"
-  location                = var.location
-  resource_group          = data.azurerm_resource_group.vnet.name
-  vnet_id                 = module.hub_network.vnet_id
-  subnet_id               = module.hub_network.subnet_ids["jumpbox-subnet"]
-  dns_zone_name           = join(".", slice(split(".", azurerm_kubernetes_cluster.privateaks.private_fqdn), 1, length(split(".", azurerm_kubernetes_cluster.privateaks.private_fqdn))))
-  dns_zone_resource_group = azurerm_kubernetes_cluster.privateaks.node_resource_group
-  vm_password             = var.jumpbox_password
 }
 
 # User mode node pool - Linux
@@ -274,4 +276,17 @@ resource "azurerm_kubernetes_cluster_node_pool" "usrpl1" {
   tags = {
     environment = "Premera"
   }
+}
+
+
+# Jumpbox for kubectl
+module "jumpbox" {
+  source                  = "./modules/jumpbox"
+  location                = var.location
+  resource_group          = data.azurerm_resource_group.vnet.name
+  vnet_id                 = module.hub_network.vnet_id
+  subnet_id               = module.hub_network.subnet_ids["jumpbox-subnet"]
+  dns_zone_name           = join(".", slice(split(".", azurerm_kubernetes_cluster.privateaks.private_fqdn), 1, length(split(".", azurerm_kubernetes_cluster.privateaks.private_fqdn))))
+  dns_zone_resource_group = azurerm_kubernetes_cluster.privateaks.node_resource_group
+  vm_password             = var.jumpbox_password
 }
