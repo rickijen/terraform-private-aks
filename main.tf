@@ -158,6 +158,8 @@ resource "azurerm_kubernetes_cluster" "privateaks" {
   resource_group_name     = data.azurerm_resource_group.kube.name
   dns_prefix              = "${random_pet.prefix.id}-aks"
   private_cluster_enabled = true
+  # az aks get-credentials --admin will fail. Non-audible backdoor is closed
+  local_account_disabled  = true
 
   # Planned Maintenance window
   maintenance_window {
