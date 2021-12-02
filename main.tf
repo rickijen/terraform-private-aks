@@ -147,7 +147,7 @@ resource "azurerm_log_analytics_solution" "default" {
 
 resource "azurerm_resource_group_policy_assignment" "auditaks" {
     name                  = "audit-aks"
-    resource_group_id     = azurerm_resource_group.default.id
+    resource_group_id     = data.azurerm_resource_group.kube.id
     policy_definition_id  = var.azure_policy_k8s_initiative
 }
 
