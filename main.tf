@@ -218,7 +218,7 @@ resource "azurerm_kubernetes_cluster" "privateaks" {
         enabled                    = true
         log_analytics_workspace_id = azurerm_log_analytics_workspace.default.id
       }
-      # azure_policy { enabled = true }
+      azure_policy { enabled = true }
 
       # Greenfield AGIC - this will create a new App Gateway in MC_ resource group
       # ingress_application_gateway {
