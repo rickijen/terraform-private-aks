@@ -1,5 +1,14 @@
 resource "random_pet" "prefix" {}
 
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "=2.88.0"
+    }
+  }
+}
+
 provider "azurerm" {
   features {}
 }
