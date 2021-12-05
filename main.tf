@@ -30,15 +30,15 @@ data "terraform_remote_state" "rg" {
   }
 }
 
-data "azurerm_resource_group" "vnet" {
-  name      = data.terraform_remote_state.rg.outputs.resource_group_vnet_name
-  #location  = data.terraform_remote_state.rg.outputs.location
-}
+#data "azurerm_resource_group" "vnet" {
+#  name      = data.terraform_remote_state.rg.outputs.resource_group_vnet_name
+#  #location  = data.terraform_remote_state.rg.outputs.location
+#}
 
-data "azurerm_resource_group" "kube" {
-  name      = data.terraform_remote_state.rg.outputs.resource_group_kube_name
-  #location  = data.terraform_remote_state.rg.outputs.location
-}
+#data "azurerm_resource_group" "kube" {
+#  name      = data.terraform_remote_state.rg.outputs.resource_group_kube_name
+#  #location  = data.terraform_remote_state.rg.outputs.location
+#}
 
 /*
 resource "azurerm_resource_group" "vnet" {
@@ -53,16 +53,16 @@ resource "azurerm_resource_group" "kube" {
 */
 
 resource "azurerm_user_assigned_identity" "uai" {
-  resource_group_name = data.azurerm_resource_group.kube.name
-  location            = data.azurerm_resource_group.kube.location
+  resource_group_name = data.terraform_remote_state.rg.outputs.resource_group_kube_name
+  location            = data.terraform_remote_state.rg.outputs.location
 
   name = "uai-aks"
 }
 
 module "hub_network" {
   source              = "./modules/vnet"
-  resource_group_name = data.azurerm_resource_group.vnet.name
-  location            = var.location
+  resource_group_name = data.terraform_remote_state.rg.outputs.resource_group_vnet_name
+  location            = data.terraform_remote_state.rg.outputs.location
   vnet_name           = "${random_pet.prefix.id}-hub-vnet"
   address_space       = ["10.10.0.0/22"]
   subnets = [
@@ -79,8 +79,8 @@ module "hub_network" {
 
 module "kube_network" {
   source              = "./modules/vnet"
-  resource_group_name = data.azurerm_resource_group.kube.name
-  location            = var.location
+  resource_group_name = data.terraform_remote_state.rg.outputs.resource_group_kube_name
+  location            = data.terraform_remote_state.rg.outputs.location
   vnet_name           = "${random_pet.prefix.id}-kube-vnet"
   address_space       = ["10.10.4.0/22"]
   subnets = [
@@ -95,18 +95,18 @@ module "vnet_peering" {
   source              = "./modules/vnet_peering"
   vnet_1_name         = "${random_pet.prefix.id}-hub-vnet"
   vnet_1_id           = module.hub_network.vnet_id
-  vnet_1_rg           = data.azurerm_resource_group.vnet.name
+  vnet_1_rg           = data.terraform_remote_state.rg.outputs.resource_group_vnet_name
   vnet_2_name         = "${random_pet.prefix.id}-kube-vnet"
   vnet_2_id           = module.kube_network.vnet_id
-  vnet_2_rg           = data.azurerm_resource_group.kube.name
+  vnet_2_rg           = data.terraform_remote_state.rg.outputs.resource_group_kube_name
   peering_name_1_to_2 = "HubToSpoke1"
   peering_name_2_to_1 = "Spoke1ToHub"
 }
 
 module "firewall" {
   source         = "./modules/firewall"
-  resource_group = data.azurerm_resource_group.vnet.name
-  location       = var.location
+  resource_group = data.terraform_remote_state.rg.outputs.resource_group_vnet_name
+  location       = data.terraform_remote_state.rg.outputs.location
   pip_name       = "azureFirewalls-ip"
   fw_name        = "kubenetfw"
   subnet_id      = module.hub_network.subnet_ids["AzureFirewallSubnet"]
@@ -114,8 +114,8 @@ module "firewall" {
 
 module "routetable" {
   source             = "./modules/route_table"
-  resource_group     = data.azurerm_resource_group.vnet.name
-  location           = var.location
+  resource_group     = data.terraform_remote_state.rg.outputs.resource_group_vnet_name
+  location           = data.terraform_remote_state.rg.outputs.location
   rt_name            = "kubenetfw_fw_rt"
   r_name             = "kubenetfw_fw_r"
   firewal_private_ip = module.firewall.fw_private_ip
@@ -136,15 +136,15 @@ resource "random_id" "log_analytics_workspace_name_suffix" {
 resource "azurerm_log_analytics_workspace" "default" {
     # The WorkSpace name has to be unique across the whole of azure, not just the current subscription/tenant.
     name                = "${random_pet.prefix.id}-${random_id.log_analytics_workspace_name_suffix.dec}"
-    location            = data.azurerm_resource_group.kube.location
-    resource_group_name = data.azurerm_resource_group.kube.name
+    location            = data.terraform_remote_state.rg.outputs.location
+    resource_group_name = data.terraform_remote_state.rg.outputs.resource_group_kube_name
     sku                 = var.log_analytics_workspace_sku
 }
 
 resource "azurerm_log_analytics_solution" "default" {
     solution_name         = "ContainerInsights"
     location              = azurerm_log_analytics_workspace.default.location
-    resource_group_name   = data.azurerm_resource_group.kube.name
+    resource_group_name   = data.terraform_remote_state.rg.outputs.resource_group_kube_name
     workspace_resource_id = azurerm_log_analytics_workspace.default.id
     workspace_name        = azurerm_log_analytics_workspace.default.name
 
@@ -164,9 +164,9 @@ resource "azurerm_resource_group_policy_assignment" "auditaks" {
 
 resource "azurerm_kubernetes_cluster" "privateaks" {
   name                    = "${random_pet.prefix.id}-aks"
-  location                = var.location
+  location                = data.terraform_remote_state.rg.outputs.location
 #  kubernetes_version      = data.azurerm_kubernetes_service_versions.current.latest_version
-  resource_group_name     = data.azurerm_resource_group.kube.name
+  resource_group_name     = data.terraform_remote_state.rg.outputs.resource_group_kube_name
   dns_prefix              = "${random_pet.prefix.id}-aks"
   private_cluster_enabled = true
   # az aks get-credentials --admin will fail. Non-audible backdoor is closed
@@ -231,7 +231,7 @@ resource "azurerm_kubernetes_cluster" "privateaks" {
         enabled                    = true
         log_analytics_workspace_id = azurerm_log_analytics_workspace.default.id
       }
-      # azure_policy { enabled = true }
+      azure_policy { enabled = true }
 
       # Greenfield AGIC - this will create a new App Gateway in MC_ resource group
       # ingress_application_gateway {
@@ -291,12 +291,11 @@ resource "azurerm_kubernetes_cluster_node_pool" "usrpl1" {
   }
 }
 
-
 # Jumpbox for kubectl
 module "jumpbox" {
   source                  = "./modules/jumpbox"
-  location                = var.location
-  resource_group          = data.azurerm_resource_group.vnet.name
+  location                = data.terraform_remote_state.rg.outputs.location
+  resource_group          = data.terraform_remote_state.rg.outputs.resource_group_vnet_name
   vnet_id                 = module.hub_network.vnet_id
   subnet_id               = module.hub_network.subnet_ids["jumpbox-subnet"]
   dns_zone_name           = join(".", slice(split(".", azurerm_kubernetes_cluster.privateaks.private_fqdn), 1, length(split(".", azurerm_kubernetes_cluster.privateaks.private_fqdn))))
