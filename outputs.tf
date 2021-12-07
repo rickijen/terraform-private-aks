@@ -10,12 +10,10 @@ output "kube_vnet_name" {
   value = "${random_pet.prefix.id}-kube-vnet"
 }
 
+output "hub_vnet_id" {
+  value = "${module.hub_network.vnet_id}"
+}
+
 output "aks_subnet_prefix" {
   value = "10.10.5.0/24"
 }
-
-#output "jumpbox_password" {
-#  description = "Jumpbox Admin Passowrd"
-#  value       = module.jumpbox.jumpbox_password
-#  sensitive = true
-#}
