@@ -232,6 +232,8 @@ resource "azurerm_kubernetes_cluster" "privateaks" {
         log_analytics_workspace_id = azurerm_log_analytics_workspace.default.id
       }
       azure_policy { enabled = true }
+      # need to review open policy agent next time
+      # https://docs.microsoft.com/en-us/azure/governance/policy/concepts/policy-for-kubernetes
 
       # Greenfield AGIC - this will create a new App Gateway in MC_ resource group
       # ingress_application_gateway {
