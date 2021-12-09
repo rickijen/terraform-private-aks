@@ -304,3 +304,21 @@ module "jumpbox" {
   dns_zone_resource_group = azurerm_kubernetes_cluster.privateaks.node_resource_group
   vm_password             = var.jumpbox_password
 }
+
+module "azure-bastion" {
+  source  = "kumarvna/azure-bastion/azurerm"
+  version = "1.1.0"
+
+  # Resource Group, location, VNet and Subnet details
+  resource_group_name  = data.terraform_remote_state.rg.outputs.resource_group_vnet_name
+  virtual_network_name = "${random_pet.prefix.id}-hub-vnet"
+
+  # Azure bastion server requireemnts
+  azure_bastion_service_name          = "${random_pet.prefix.id}-bastion"
+  azure_bastion_subnet_address_prefix = ["10.10.2.0/26"]
+
+  # Adding TAG's to your Azure resources (Required)
+  tags = {
+    env = "dev"
+  }
+}
