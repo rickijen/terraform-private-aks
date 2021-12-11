@@ -10,6 +10,10 @@ output "kube_vnet_name" {
   value = "${random_pet.prefix.id}-kube-vnet"
 }
 
+output "hub_vnet_name" {
+  value = "${random_pet.prefix.id}-hub-vnet"
+}
+
 output "hub_vnet_id" {
   value = "${module.hub_network.vnet_id}"
 }
