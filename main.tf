@@ -78,7 +78,7 @@ module "kube_network" {
     }
   ]
 }
-
+/*
 module "vnet_peering" {
   source              = "./modules/vnet_peering"
   vnet_1_name         = "${random_pet.prefix.id}-hub-vnet"
@@ -90,7 +90,7 @@ module "vnet_peering" {
   peering_name_1_to_2 = "HubToSpoke1"
   peering_name_2_to_1 = "Spoke1ToHub"
 }
-
+*/
 module "firewall" {
   source         = "./modules/firewall"
   resource_group = data.terraform_remote_state.rg.outputs.resource_group_vnet_name
