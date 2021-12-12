@@ -292,7 +292,7 @@ module "jumpbox" {
   dns_zone_resource_group = azurerm_kubernetes_cluster.privateaks.node_resource_group
   vm_password             = var.jumpbox_password
 }
-
+/*
 module "azure-bastion" {
   source  = "kumarvna/azure-bastion/azurerm"
   version = "1.1.0"
@@ -310,3 +310,4 @@ module "azure-bastion" {
     env = "dev"
   }
 }
+*/
