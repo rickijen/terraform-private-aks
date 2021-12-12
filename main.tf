@@ -280,7 +280,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "usrpl1" {
     environment = "Premera"
   }
 }
-
+/*
 # Jumpbox for kubectl
 module "jumpbox" {
   source                  = "./modules/jumpbox"
@@ -292,6 +292,7 @@ module "jumpbox" {
   dns_zone_resource_group = azurerm_kubernetes_cluster.privateaks.node_resource_group
   vm_password             = var.jumpbox_password
 }
+*/
 /*
 module "azure-bastion" {
   source  = "kumarvna/azure-bastion/azurerm"
