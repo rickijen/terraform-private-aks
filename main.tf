@@ -40,18 +40,6 @@ data "terraform_remote_state" "rg" {
 #  #location  = data.terraform_remote_state.rg.outputs.location
 #}
 
-/*
-resource "azurerm_resource_group" "vnet" {
-  name     = "${random_pet.prefix.id}-vnet-rg"
-  location = var.location
-}
-
-resource "azurerm_resource_group" "kube" {
-  name     = "${random_pet.prefix.id}-kube-rg"
-  location = var.location
-}
-*/
-
 resource "azurerm_user_assigned_identity" "uai" {
   resource_group_name = data.terraform_remote_state.rg.outputs.resource_group_kube_name
   location            = data.terraform_remote_state.rg.outputs.location
