@@ -4,7 +4,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=2.87.0"
+      version = ">=2.89.0"
     }
   }
 }
@@ -78,7 +78,7 @@ module "kube_network" {
     }
   ]
 }
-/*
+
 module "vnet_peering" {
   source              = "./modules/vnet_peering"
   vnet_1_name         = "${random_pet.prefix.id}-hub-vnet"
@@ -90,7 +90,7 @@ module "vnet_peering" {
   peering_name_1_to_2 = "HubToSpoke1"
   peering_name_2_to_1 = "Spoke1ToHub"
 }
-*/
+
 module "firewall" {
   source         = "./modules/firewall"
   resource_group = data.terraform_remote_state.rg.outputs.resource_group_vnet_name
@@ -109,13 +109,6 @@ module "routetable" {
   firewal_private_ip = module.firewall.fw_private_ip
   subnet_id          = module.kube_network.subnet_ids["aks-subnet"]
 }
-
-/*
-data "azurerm_kubernetes_service_versions" "current" {
-  location       = var.location
-  version_prefix = var.kube_version_prefix
-}
-*/
 
 resource "random_id" "log_analytics_workspace_name_suffix" {
     byte_length = 8
@@ -280,7 +273,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "usrpl1" {
     environment = "Premera"
   }
 }
-/*
+
 # Jumpbox for kubectl
 module "jumpbox" {
   source                  = "./modules/jumpbox"
@@ -292,8 +285,8 @@ module "jumpbox" {
   dns_zone_resource_group = azurerm_kubernetes_cluster.privateaks.node_resource_group
   vm_password             = var.jumpbox_password
 }
-*/
-/*
+
+
 module "azure-bastion" {
   source  = "kumarvna/azure-bastion/azurerm"
   version = "1.1.0"
@@ -311,4 +304,3 @@ module "azure-bastion" {
     env = "dev"
   }
 }
-*/
