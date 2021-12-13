@@ -78,7 +78,7 @@ resource "azurerm_linux_virtual_machine" "jumpbox" {
     sku       = "16.04.0-LTS"
     version   = "latest"
   }
-
+/*
   provisioner "remote-exec" {
     connection {
       host     = self.public_ip_address
@@ -97,6 +97,7 @@ resource "azurerm_linux_virtual_machine" "jumpbox" {
       "curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash"
     ]
   }
+*/
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "hublink" {
