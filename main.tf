@@ -286,10 +286,12 @@ module "jumpbox" {
   vm_password             = var.jumpbox_password
 }
 
-
+# Bastion service
 module "azure-bastion" {
   source  = "kumarvna/azure-bastion/azurerm"
   version = "1.1.0"
+
+  depends_on = [module.hub_network, module.kube_network]
 
   # Resource Group, location, VNet and Subnet details
   resource_group_name  = data.terraform_remote_state.rg.outputs.resource_group_vnet_name
