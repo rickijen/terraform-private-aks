@@ -286,6 +286,7 @@ module "jumpbox" {
   vm_password             = var.jumpbox_password
 }
 
+/* move bastion to another workspace
 # Bastion service
 module "azure-bastion" {
   source  = "kumarvna/azure-bastion/azurerm"
@@ -306,3 +307,4 @@ module "azure-bastion" {
     env = "dev"
   }
 }
+*/
