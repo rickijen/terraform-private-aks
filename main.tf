@@ -135,13 +135,12 @@ resource "azurerm_log_analytics_solution" "default" {
     }
 }
 
-/* Need to enable policy in the addon_profile
+# Need to enable policy in the addon_profile
 resource "azurerm_resource_group_policy_assignment" "auditaks" {
     name                  = "audit-${random_pet.prefix.id}-aks"
     resource_group_id     = data.azurerm_resource_group.kube.id
     policy_definition_id  = var.azure_policy_k8s_initiative
 }
-*/
 
 resource "azurerm_kubernetes_cluster" "privateaks" {
   name                    = "${random_pet.prefix.id}-aks"
