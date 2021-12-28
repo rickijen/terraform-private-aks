@@ -138,7 +138,7 @@ resource "azurerm_log_analytics_solution" "default" {
 # Need to enable policy in the addon_profile
 resource "azurerm_resource_group_policy_assignment" "auditaks" {
     name                  = "audit-${random_pet.prefix.id}-aks"
-    resource_group_id     = data.azurerm_resource_group.kube.id
+    resource_group_id     = data.terraform_remote_state.rg.outputs.resource_group_kube_name
     policy_definition_id  = var.azure_policy_k8s_initiative
 }
 
