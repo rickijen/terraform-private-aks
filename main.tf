@@ -215,6 +215,9 @@ resource "azurerm_kubernetes_cluster" "privateaks" {
       # need to review open policy agent next time
       # https://docs.microsoft.com/en-us/azure/governance/policy/concepts/policy-for-kubernetes
 
+      # Open Service Mesh: https://docs.microsoft.com/en-us/azure/aks/open-service-mesh-deploy-addon-az-cli
+      open_service_mesh { enabled = true }
+
       # Greenfield AGIC - this will create a new App Gateway in MC_ resource group
       # ingress_application_gateway {
       #   enabled   = true
@@ -285,25 +288,11 @@ module "jumpbox" {
   vm_password             = var.jumpbox_password
 }
 
-/* move bastion to another workspace
-# Bastion service
-module "azure-bastion" {
-  source  = "kumarvna/azure-bastion/azurerm"
-  version = "1.1.0"
-
-  depends_on = [module.hub_network, module.kube_network]
-
-  # Resource Group, location, VNet and Subnet details
-  resource_group_name  = data.terraform_remote_state.rg.outputs.resource_group_vnet_name
-  virtual_network_name = "${random_pet.prefix.id}-hub-vnet"
-
-  # Azure bastion server requireemnts
-  azure_bastion_service_name          = "${random_pet.prefix.id}-bastion"
-  azure_bastion_subnet_address_prefix = ["10.10.2.0/26"]
-
-  # Adding TAG's to your Azure resources (Required)
-  tags = {
-    env = "dev"
-  }
-}
+/*
+sudo apt-get update && sudo apt-get install -y apt-transport-https gnupg2
+curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+echo 'deb https://apt.kubernetes.io/ kubernetes-xenial main' | sudo tee -a /etc/apt/sources.list.d/kubernetes.list
+sudo apt-get update
+sudo apt-get install -y kubectl
+curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 */
