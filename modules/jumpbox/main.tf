@@ -74,8 +74,8 @@ resource "random_password" "adminpassword" {
 
 resource "azurerm_windows_virtual_machine" "jumpbox-w" {
   name                = "jumpboxvm-w"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
+  resource_group_name = var.resource_group
+  location            = var.location
   size                = "Standard_DS1_v2"
   admin_username      = var.vm_user
   admin_password      = var.vm_password
