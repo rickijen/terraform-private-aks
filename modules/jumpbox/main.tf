@@ -38,6 +38,24 @@ resource "azurerm_network_interface" "vm_nic" {
   }
 }
 
+resource "azurerm_network_interface" "vm_nic-w" {
+  name                = "vm-nic-w"
+  location            = var.location
+  resource_group_name = var.resource_group
+
+  ip_configuration {
+    name                          = "vmNicConfiguration-w"
+    subnet_id                     = var.subnet_id
+    private_ip_address_allocation = "Dynamic"
+    #public_ip_address_id          = azurerm_public_ip.pip.id
+  }
+}
+
+resource "azurerm_network_interface_security_group_association" "sg_association-w" {
+  network_interface_id      = azurerm_network_interface.vm_nic-w.id
+  network_security_group_id = azurerm_network_security_group.vm_sg.id
+}
+
 resource "azurerm_network_interface_security_group_association" "sg_association" {
   network_interface_id      = azurerm_network_interface.vm_nic.id
   network_security_group_id = azurerm_network_security_group.vm_sg.id
@@ -52,6 +70,30 @@ resource "random_password" "adminpassword" {
   min_lower   = 1
   min_upper   = 1
   min_numeric = 1
+}
+
+resource "azurerm_windows_virtual_machine" "jumpbox-w" {
+  name                = "jumpboxvm-w"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+  size                = "Standard_DS1_v2"
+  admin_username      = var.vm_user
+  admin_password      = var.vm_password
+  # availability_set_id = azurerm_availability_set.DemoAset.id
+  network_interface_ids = [azurerm_network_interface.vm_nic-w.id]
+
+  os_disk {
+    name                 = "jumpboxwOsDisk"
+    caching              = "ReadWrite"
+    storage_account_type = "Premium_LRS"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-Datacenter"
+    version   = "latest"
+  }
 }
 
 resource "azurerm_linux_virtual_machine" "jumpbox" {

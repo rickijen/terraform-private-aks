@@ -295,4 +295,8 @@ echo 'deb https://apt.kubernetes.io/ kubernetes-xenial main' | sudo tee -a /etc/
 sudo apt-get update
 sudo apt-get install -y kubectl
 curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+OSM_VERSION=v0.11.1
+curl -sL "https://github.com/openservicemesh/osm/releases/download/$OSM_VERSION/osm-$OSM_VERSION-linux-amd64.tar.gz" | tar -vxzf -
+sudo mv ./linux-amd64/osm /usr/local/bin/osm
+sudo chmod +x /usr/local/bin/osm
 */
