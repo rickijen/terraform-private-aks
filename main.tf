@@ -201,8 +201,9 @@ resource "azurerm_kubernetes_cluster" "privateaks" {
   }
 
   identity {
-    type = "UserAssigned"
-    user_assigned_identity_id = azurerm_user_assigned_identity.uai.id
+    #type = "UserAssigned"
+    type = "SystemAssigned"
+    #user_assigned_identity_id = azurerm_user_assigned_identity.uai.id
   }
 
   # Add On's
