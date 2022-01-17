@@ -76,7 +76,7 @@ resource "azurerm_windows_virtual_machine" "jumpbox-w" {
   name                = "jumpboxvm-w"
   resource_group_name = var.resource_group
   location            = var.location
-  size                = "Standard_D4s_v4"
+  size                = "Standard_D4s_v3"
   admin_username      = var.vm_user
   admin_password      = var.vm_password
   # availability_set_id = azurerm_availability_set.DemoAset.id
@@ -101,7 +101,7 @@ resource "azurerm_linux_virtual_machine" "jumpbox" {
   location                        = var.location
   resource_group_name             = var.resource_group
   network_interface_ids           = [azurerm_network_interface.vm_nic.id]
-  size                            = "Standard_D4s_v4"
+  size                            = "Standard_D4s_v3"
   computer_name                   = "jumpboxvm"
   admin_username                  = var.vm_user
 #  admin_password                  = random_password.adminpassword.result
