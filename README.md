@@ -1,3 +1,12 @@
+#
+#
+#
+# This repo is now archived. The new one is at: https://github.com/rickijen/private-aks-terraform
+#
+#
+#
+#
+
 # Private AKS Terraform
 Manage a "Fully" private AKS infrastructure with Terraform.
 
